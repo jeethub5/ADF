@@ -1,7 +1,7 @@
 {
 	"name": "StartStopSSIS",
 	"properties": {
-		"description": "Pipeline to execute SSIS package.",
+		"description": "Pipeline to execute SSIS package using start/stop feature.",
 		"activities": [
 			{
 				"name": "startIR",
