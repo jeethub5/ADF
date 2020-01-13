@@ -1,0 +1,103 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "palakdf"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/StartStopSSIS')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Pipeline to execute SSIS package using start/stop feature.",
+				"activities": [
+					{
+						"name": "startIR",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://management.azure.com/subscriptions/eae110e9-5425-4951-80a0-8a93e167171e/resourceGroups/Azurep/providers/Microsoft.DataFactory/factories/palakdf/integrationRuntimes/ssisIR/start?api-version=2018-06-01",
+							"method": "POST",
+							"body": {
+								"message": "Start my IR"
+							},
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://management.azure.com/"
+							}
+						}
+					},
+					{
+						"name": "Execute SSIS Package",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "startIR",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pipeline3",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": false
+						}
+					},
+					{
+						"name": "stopIR",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Execute SSIS Package",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://management.azure.com/subscriptions/eae110e9-5425-4951-80a0-8a93e167171e/resourceGroups/Azurep/providers/Microsoft.DataFactory/factories/palakdf/integrationRuntimes/ssisIR/stop?api-version=2018-06-01",
+							"method": "POST",
+							"body": {
+								"message": "Stop my IR"
+							},
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://management.azure.com/"
+							}
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": []
+		}
+	]
+}

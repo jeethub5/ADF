@@ -1,0 +1,45 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "palakdf"
+		},
+		"ADLS_accountKey": {
+			"value": ""
+		},
+		"AzureSQLDBService_connectionString": {
+			"value": ""
+		},
+		"AzureSqlPalakDB_connectionString": {
+			"value": ""
+		},
+		"MovefilesLS_connectionString": {
+			"value": ""
+		},
+		"SQLDW_connectionString": {
+			"value": ""
+		},
+		"ADLS_properties_typeProperties_url": {
+			"value": "https://palakdatalake.dfs.core.windows.net"
+		},
+		"MoviesGithub_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com/djpmsft/adf-ready-demo/master/moviesDB.csv"
+		},
+		"ssisIR_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
+			"value": "palakserver.database.windows.net"
+		},
+		"ssisIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName": {
+			"value": "test"
+		},
+		"ssisIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword": {
+			"value": ""
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
