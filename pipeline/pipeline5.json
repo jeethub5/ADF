@@ -1,0 +1,33 @@
+{
+	"name": "pipeline5",
+	"properties": {
+		"activities": [
+			{
+				"name": "StopmyIR",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://management.azure.com/subscriptions/eae110e9-5425-4951-80a0-8a93e167171e/resourceGroups/Azurep/providers/Microsoft.DataFactory/factories/palakdf/integrationRuntimes/ssisIR/stop?api-version=2018-06-01",
+					"method": "POST",
+					"body": {
+						"message": "Stop my IR"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://management.azure.com/"
+					}
+				}
+			}
+		],
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

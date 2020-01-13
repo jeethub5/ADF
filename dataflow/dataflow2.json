@@ -1,0 +1,51 @@
+{
+	"name": "dataflow2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlpd",
+						"type": "DatasetReference"
+					},
+					"name": "source"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSqlwm",
+						"type": "DatasetReference"
+					},
+					"name": "sourcewm"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqldest",
+						"type": "DatasetReference"
+					},
+					"name": "sink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DerivedColumnConvert"
+				},
+				{
+					"name": "JointoWm"
+				},
+				{
+					"name": "FilterOnlyNewRecords"
+				},
+				{
+					"name": "SelectColumns"
+				},
+				{
+					"name": "DerivedColumnConvertToDate"
+				}
+			],
+			"script": "\n\nsource(output(\n\t\tSalesOrderID as integer,\n\t\tSalesOrderDetailID as integer,\n\t\tOrderQty as integer,\n\t\tProductID as integer,\n\t\tUnitPrice as decimal(19,4),\n\t\tUnitPriceDiscount as decimal(19,4),\n\t\tLineTotal as decimal(38,6),\n\t\trowguid as string,\n\t\tModifiedDate as timestamp,\n\t\tTableName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\n\t\t[SalesOrderID]\\n      ,[SalesOrderDetailID]\\n      ,[OrderQty]\\n      ,[ProductID]\\n      ,[UnitPrice]\\n      ,[UnitPriceDiscount]\\n      ,[LineTotal]\\n      ,[rowguid]\\n      ,[ModifiedDate]\\n\t  , \\'SalesOrderDetail\\' AS TableName\\n  FROM [SalesLT].[SalesOrderDetail]',\n\tformat: 'query') ~> source\nsource(output(\n\t\tWatermarkTableName as string,\n\t\tWatermarkColumn as string,\n\t\tWatermarkValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> sourcewm\nsource derive(ModifiedDate = toString(ModifiedDate)) ~> DerivedColumnConvert\nDerivedColumnConvert, sourcewm join(TableName == WatermarkTableName,\n\tjoinType:'left',\n\tbroadcast: 'none')~> JointoWm\nJointoWm filter(ModifiedDate > WatermarkValue) ~> FilterOnlyNewRecords\nFilterOnlyNewRecords select(mapColumn(\n\t\tSalesOrderID,\n\t\tSalesOrderDetailID,\n\t\tOrderQty,\n\t\tProductID,\n\t\tUnitPrice,\n\t\tUnitPriceDiscount,\n\t\trowguid,\n\t\tModifiedDate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectColumns\nSelectColumns derive(ModifiedDate = toDate(ModifiedDate)) ~> DerivedColumnConvertToDate\nDerivedColumnConvertToDate sink(input(\n\t\tSalesOrderID as integer,\n\t\tSalesOrderDetailID as integer,\n\t\tOrderQty as integer,\n\t\tProductID as integer,\n\t\tUnitPrice as decimal(19,4),\n\t\tUnitPriceDiscount as decimal(19,4),\n\t\tLineTotal as decimal(38,6),\n\t\trowguid as string,\n\t\tModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table') ~> sink"
+		}
+	}
+}

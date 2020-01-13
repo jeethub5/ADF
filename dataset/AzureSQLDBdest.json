@@ -1,0 +1,27 @@
+{
+	"name": "AzureSQLDBdest",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSQLDBService",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Dest_EmpID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Dest_EmpName",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "destinationtable"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,52 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "AzureSQLDBdest",
+						"type": "DatasetReference"
+					},
+					"name": "destination"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSQLDBsource",
+						"type": "DatasetReference"
+					},
+					"name": "source"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSQLDBdest",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSQLDBdest",
+						"type": "DatasetReference"
+					},
+					"name": "sink2"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Lookup"
+				},
+				{
+					"name": "ConditionalSplit1"
+				},
+				{
+					"name": "AlterRow1"
+				}
+			],
+			"script": "\n\nsource(output(\n\t\tDest_EmpID as integer,\n\t\tDest_EmpName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> destination\nsource(output(\n\t\tEmpID as integer,\n\t\tEmpName as string,\n\t\tModifiedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> source\nsource, destination lookup(EmpID == Dest_EmpID,\n\tbroadcast: 'none')~> Lookup\nLookup split(isNull(Dest_EmpID),\n\tdisjoint: false) ~> ConditionalSplit1@(INSERT, UPDATE)\nConditionalSplit1@UPDATE alterRow(updateIf(EmpName!=Dest_EmpName)) ~> AlterRow1\nConditionalSplit1@INSERT sink(input(\n\t\tDest_EmpID as integer,\n\t\tDest_EmpName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_EmpID = EmpID,\n\t\tDest_EmpName = EmpName\n\t)) ~> sink1\nAlterRow1 sink(input(\n\t\tDest_EmpID as integer,\n\t\tDest_EmpName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['Dest_EmpID'],\n\tformat: 'table',\n\tmapColumn(\n\t\tDest_EmpID,\n\t\tDest_EmpName = EmpName\n\t)) ~> sink2"
+		}
+	}
+}
